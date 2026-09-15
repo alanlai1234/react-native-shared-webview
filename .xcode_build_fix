@@ -1,0 +1,13 @@
+
+
+- (instancetype)initWithFrame:(CGRect)frame {
+  if (self = [super initWithFrame:frame]) {
+    static const auto defaultProps = std::make_shared<const HybridSharedWebViewProps>();
+    _props = defaultProps;
+    std::shared_ptr<HybridSharedWebViewSpec> hybridView = NitroSharedWebview::NitroSharedWebviewAutolinking::createSharedWebView();
+    _hybridView = std::dynamic_pointer_cast<HybridSharedWebViewSpecSwift>(hybridView);
+    [self updateView];
+  }
+  return self;
+}
+in line 51

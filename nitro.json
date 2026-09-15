@@ -1,0 +1,40 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": [
+    "sharedwebview"
+  ],
+  "ios": {
+    "iosModuleName": "NitroSharedWebview"
+  },
+  "android": {
+    "androidNamespace": [
+      "sharedwebview"
+    ],
+    "androidCxxLibName": "NitroSharedWebview"
+  },
+  "autolinking": {
+	  "SharedWebView":{
+		  "ios": {
+			"language": "swift",
+			"implementationClassName": "HybridSharedWebView"
+		  },
+		  "android": {
+			"language": "kotlin",
+			"implementationClassName": "HybridSharedWebView"
+		  }
+	  },
+	  "BrowserSession":{
+		  "ios":{
+			  "language": "swift",
+			  "implementationClassName": "HybridBrowserSession"
+		  },
+		  "android":{
+			  "language": "kotlin",
+			  "implementationClassName": "HybridBrowserSession"
+		  }
+	  }
+  },
+  "ignorePaths": [
+    "**/node_modules"
+  ]
+}
