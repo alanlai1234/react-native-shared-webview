@@ -13,10 +13,10 @@ class HybridSharedWebView(val context: ThemedReactContext): HybridSharedWebViewS
     override var session: HybridBrowserSessionSpec? = null
         set(value) {
             field = value
-            runMain{ attach() }
+            UiThreadUtil.runOnUiThread{ attach() }
         }
     override fun reattach() {
-        runMain{ attach() }
+        UiThreadUtil.runOnUiThread{ attach() }
     }
 
     private val container = FrameLayout(context)
@@ -26,21 +26,12 @@ class HybridSharedWebView(val context: ThemedReactContext): HybridSharedWebViewS
     private fun attach(){
         val session = session as? HybridBrowserSession
         val webview = session?.webview ?: return
-        (webview.parent as? ViewGroup)?.removeView(webview)
+        if(webview.parent == container) return
+        (webview.parent as? ViewGroup)?.removeAllViews()
         container.removeAllViews()
         container.addView(webview, FrameLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
-    }
-
-    private inline fun runMain(crossinline block: () -> Unit) {
-        if (Looper.myLooper() == Looper.getMainLooper())
-            block()
-        else {
-            Handler(Looper.getMainLooper()).post {
-                block()
-            }
-        }
     }
 }

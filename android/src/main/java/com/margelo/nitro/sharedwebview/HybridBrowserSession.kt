@@ -9,6 +9,7 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
 import com.facebook.react.bridge.UiThreadUtil
 import com.margelo.nitro.NitroModules
 import com.margelo.nitro.core.Promise
@@ -21,13 +22,13 @@ class HybridBrowserSession: HybridBrowserSessionSpec() {
         null
 
     override fun loadhtml(html: String) {
-        runMain {
+        UiThreadUtil.runOnUiThread {
             webview.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null)
         }
     }
 
     override fun postMessage(data: String) {
-        runMain {
+        UiThreadUtil.runOnUiThread {
             webview.evaluateJavascript(postMessageScript(data), null)
         }
     }
@@ -56,7 +57,7 @@ class HybridBrowserSession: HybridBrowserSessionSpec() {
         payload: ShouldStartLoadRequest,
         timeoutMs: Long = SHOULD_OVERRIDE_URL_LOADING_TIMEOUT_MS,
     ): Boolean {
-        return Companion.awaitShouldStart(hook, payload, timeoutMs)
+        return awaitShouldStart(hook, payload, timeoutMs)
     }
 
     private inner class ClientImpl : WebViewClient() {
@@ -66,6 +67,7 @@ class HybridBrowserSession: HybridBrowserSessionSpec() {
         ): Boolean {
             val hook = onShouldStartLoadWithRequest ?: return false
             val url = request.url?.toString() ?: return false
+            // url when loading other notes become about:blank#blocked
             if (!request.isForMainFrame && interceptSubframeNavigation != true) {
                 return false
             }
@@ -165,21 +167,6 @@ class HybridBrowserSession: HybridBrowserSessionSpec() {
     private inner class BridgeInterface {
         @JavascriptInterface
         fun postMessage(data: String) {
-//            val blob = parseBlobEnvelope(data)
-//            if (blob != null) {
-//                view.post {
-//                    emitFileDownload(
-//                        FileDownload(
-//                            url = blob.dataUrl,
-//                            mimeType = blob.mimeType.takeIf { it.isNotEmpty() },
-//                            fileName = blob.fileName.takeIf { it.isNotEmpty() },
-//                            contentLength = blob.size.takeIf { it > 0 },
-//                            userAgent = null,
-//                        ),
-//                    )
-//                }
-//                return
-//            }
             webview.post {
                 val payload = WebViewMessageEvent(
                     WebViewMessageNativeEvent(
@@ -192,16 +179,6 @@ class HybridBrowserSession: HybridBrowserSessionSpec() {
                     ),
                 )
                 onMessage?.invoke(payload)
-            }
-        }
-    }
-
-    private inline fun runMain(crossinline block: () -> Unit) {
-        if (Looper.myLooper() == Looper.getMainLooper())
-            block()
-        else {
-            Handler(Looper.getMainLooper()).post {
-                block()
             }
         }
     }
